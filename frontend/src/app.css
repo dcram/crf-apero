@@ -7,8 +7,9 @@
   --rule: #e2d5bb;
   --field: #cdbf9f;
   --gold: #a07a35;
+  --gold-text: #80602a;
   --wine: #7b2d2d;
-  --muted: #857f70;
+  --muted: #6b6558;
   --focus: #2f5fb3;
   --radius: 14px;
   --serif: 'Cormorant Garamond', 'Iowan Old Style', Georgia, serif;
@@ -59,7 +60,7 @@ a {
 
 .eyebrow {
   margin: 0 0 0.75rem;
-  color: var(--gold);
+  color: var(--gold-text);
   font: 600 0.8rem/1.2 var(--sans);
   letter-spacing: 0.18em;
   text-transform: uppercase;
@@ -129,7 +130,7 @@ h1 em {
   align-items: center;
   gap: 1rem;
   margin: 0 0 1rem;
-  color: var(--gold);
+  color: var(--gold-text);
   font: 600 0.85rem var(--sans);
   letter-spacing: 0.2em;
   text-transform: uppercase;
