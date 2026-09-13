@@ -16,5 +16,26 @@ services:
       timeout: 3s
       retries: 20
 
+  app:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+asyncpg://crf:crf@db:5432/crf
+      TURNSTILE_SITE_KEY: 1x00000000000000000000AA
+      TURNSTILE_SECRET: 1x0000000000000000000000000000000AA
+      ORGANIZER_EMAILS: orga@example.org
+      MAIL_REPLY_TO: orga@example.org
+      CONTACT_EMAIL: contact@example.org
+      EVENT_INFO: "Mardi 20h30 – Sainte-Élisabeth, 43 rue de Coulmiers"
+      APERO_START_TIME: "21:30"
+      MAIL_BACKEND: console
+    ports:
+      - "8000:8000"
+    read_only: true
+    tmpfs:
+      - /tmp
+
 volumes:
   pgdata:
