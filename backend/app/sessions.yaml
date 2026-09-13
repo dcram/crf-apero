@@ -1,0 +1,18 @@
+# Programme de la saison CRF — un mardi sur deux.
+# Chaque date doit être un mardi, sans doublon, avec un thème non vide.
+# Toute modification passe par un commit : la CI vérifie ce fichier.
+sessions:
+  - date: 2026-09-22
+    theme: "Qui est Dieu ?"
+  - date: 2026-10-06
+    theme: "La Création et la Chute"
+  - date: 2026-10-20
+    theme: "L'Alliance et les prophètes"
+  - date: 2026-11-03
+    theme: "L'Incarnation"
+  - date: 2026-11-17
+    theme: "La Passion et la Résurrection"
+  - date: 2026-12-01
+    theme: "L'Église"
+  - date: 2026-12-15
+    theme: "Les sacrements"

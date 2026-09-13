@@ -1,0 +1,7 @@
+sessions:
+  - date: 2030-01-15
+    theme: "Thème B"
+  - date: 2020-01-07
+    theme: "Thème passé"
+  - date: 2030-01-01
+    theme: "Thème A"
