@@ -28,6 +28,8 @@ async def calendar(request: Request) -> dict:
     settings = deps.settings
     return {
         "event_info": settings.event_info,
+        "event_address": settings.event_address,
+        "event_map_url": settings.event_map_url,
         "contact_email": settings.contact_email,
         "apero_start_time": settings.apero_start_time,
         "turnstile_site_key": settings.turnstile_site_key,

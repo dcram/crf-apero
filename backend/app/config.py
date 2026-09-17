@@ -20,6 +20,8 @@ class Settings(BaseSettings):
     mail_reply_to: str
     contact_email: str
     event_info: str = ""
+    event_address: str = ""
+    event_map_url: str = ""
     apero_start_time: str = "21:30"
     aws_region: str = "eu-west-3"
     mail_backend: Literal["ses", "console"] = "console"

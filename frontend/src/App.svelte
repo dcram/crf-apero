@@ -46,9 +46,9 @@
 <div class="page">
   <header class="masthead">
     <p class="eyebrow">Fraternité Saint-Pierre · Nantes</p>
-    <h1>L'apéro des <em>CRF</em></h1>
+    <h1>Le moment convivial<em>des commençants et recommençants dans la foi</em></h1>
     {#if season}<p class="season">Saison {season}</p>{/if}
-    <div class="ornament" aria-hidden="true">❦</div>
+    <div class="ornament" aria-hidden="true"><img src="/logo-crf.png" alt="" /></div>
     <p class="lead">
       Un mardi sur deux, le parcours <em>Commencer – Recommencer dans la Foi</em> se termine par
       un moment convivial. Chaque fois, un paroissien différent l'offre : il apporte de quoi boire
@@ -56,7 +56,22 @@
       ou redécouvrent la foi.
     </p>
     <p class="lead">Choisissez le mardi qui vous convient.</p>
-    {#if calendar?.event_info}<p class="event-info">{calendar.event_info}</p>{/if}
+    {#if calendar?.event_info || calendar?.event_address}
+      <div class="event-info">
+        {#if calendar.event_info}<p>{calendar.event_info}</p>{/if}
+        {#if calendar.event_address}
+          <p class="address">
+            {#if calendar.event_map_url}
+              <a href={calendar.event_map_url} target="_blank" rel="noopener noreferrer">
+                {calendar.event_address}
+              </a>
+            {:else}
+              {calendar.event_address}
+            {/if}
+          </p>
+        {/if}
+      </div>
+    {/if}
   </header>
 
   <main>

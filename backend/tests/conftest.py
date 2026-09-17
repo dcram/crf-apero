@@ -31,6 +31,8 @@ def make_settings(**overrides) -> Settings:
         mail_reply_to="orgas@example.org",
         contact_email="contact@example.org",
         event_info="Mardi 20h30 – Sainte-Élisabeth",
+        event_address="43 rue de Coulmiers, 44000 Nantes",
+        event_map_url="https://example.org/plan",
         apero_start_time="21:30",
         mail_backend="console",
         sessions_file=FIXTURES / "sessions.yaml",

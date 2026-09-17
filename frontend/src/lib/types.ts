@@ -6,6 +6,8 @@ export interface SessionItem {
 
 export interface Calendar {
   event_info: string;
+  event_address: string;
+  event_map_url: string;
   contact_email: string;
   apero_start_time: string;
   turnstile_site_key: string;

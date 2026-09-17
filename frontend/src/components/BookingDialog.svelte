@@ -67,6 +67,7 @@
       startTime: calendar.apero_start_time,
       theme: session.theme,
       eventInfo: calendar.event_info,
+      address: calendar.event_address,
     });
     const url = URL.createObjectURL(new Blob([ics], { type: 'text/calendar;charset=utf-8' }));
     const link = document.createElement('a');
