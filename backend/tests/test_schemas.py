@@ -1,0 +1,63 @@
+import datetime as dt
+
+import pytest
+from pydantic import ValidationError
+
+from app.schemas import BookingIn, validation_message
+
+VALID = {"date": "2030-01-01", "name": "Jean Dupont", "turnstile_token": "tok"}
+
+
+def parse(**overrides) -> BookingIn:
+    return BookingIn.model_validate({**VALID, **overrides})
+
+
+def test_valid_minimal_payload():
+    booking = parse()
+    assert booking.date == dt.date(2030, 1, 1)
+    assert booking.phone is None
+    assert booking.website == ""
+
+
+@pytest.mark.parametrize(
+    ("raw", "expected"),
+    [
+        ("06 12.34-56 78", "0612345678"),
+        ("+33 6 12 34 56 78", "+33612345678"),
+        ("", None),
+        ("   ", None),
+        (None, None),
+    ],
+)
+def test_phone_normalization(raw, expected):
+    assert parse(phone=raw).phone == expected
+
+
+@pytest.mark.parametrize("raw", ["12345", "0012345678", "+44612345678", "06123456789", "abc"])
+def test_rejects_invalid_phone(raw):
+    with pytest.raises(ValidationError) as exc:
+        parse(phone=raw)
+    assert validation_message(exc.value) == "Le numéro de téléphone n'est pas valide."
+
+
+def test_name_whitespace_is_normalized():
+    assert parse(name="  Jean \n  Dupont ").name == "Jean Dupont"
+
+
+@pytest.mark.parametrize("raw", ["J", " ", "x" * 81, "Jean\x00"])
+def test_rejects_invalid_name(raw):
+    with pytest.raises(ValidationError) as exc:
+        parse(name=raw)
+    assert validation_message(exc.value) == "Merci d'indiquer votre nom (2 à 80 caractères)."
+
+
+def test_rejects_empty_token():
+    with pytest.raises(ValidationError) as exc:
+        parse(turnstile_token=" ")
+    assert "anti-robot" in validation_message(exc.value)
+
+
+def test_rejects_bad_date():
+    with pytest.raises(ValidationError) as exc:
+        parse(date="pas-une-date")
+    assert validation_message(exc.value) == "La date choisie n'est pas valide."
