@@ -1,18 +1,46 @@
 # Programme de la saison CRF — un mardi sur deux.
 # Chaque date doit être un mardi, sans doublon, avec un thème non vide.
 # Toute modification passe par un commit : la CI vérifie ce fichier.
+#
+# Source : calendrier CRF 2026-2027 (paroisse Saint-Clément, FSSP Nantes).
+# Enseignements le mardi de 19h30 à 21h00 :
+#   45' d'enseignement, 15' de questions, puis 30' de discussion conviviale.
+# Le barbecue de fin d'année est annoncé au mercredi 30 juin dans le document
+# d'origine ; retenu ici au mardi 29 juin, à confirmer avec les organisateurs.
 sessions:
-  - date: 2026-09-22
-    theme: "Qui est Dieu ?"
-  - date: 2026-10-06
-    theme: "La Création et la Chute"
-  - date: 2026-10-20
-    theme: "L'Alliance et les prophètes"
+  - date: 2026-09-15
+    theme: "La foi, le b.a.-ba"
+  - date: 2026-09-29
+    theme: "Découverte des lieux et des attitudes dans une église (rendez-vous directement dans l'église)"
+  - date: 2026-10-13
+    theme: "La Toussaint, la communion des saints"
   - date: 2026-11-03
-    theme: "L'Incarnation"
+    theme: "La Création, la Trinité"
   - date: 2026-11-17
-    theme: "La Passion et la Résurrection"
+    theme: "Lire la Bible, la messe du dimanche (maniement du missel)"
   - date: 2026-12-01
-    theme: "L'Église"
+    theme: "La Révélation, l'Avent, la prière"
   - date: 2026-12-15
-    theme: "Les sacrements"
+    theme: "L'Incarnation, la Vierge Marie, la Rédemption"
+  - date: 2027-01-05
+    theme: "Les Béatitudes, l'Épiphanie"
+  - date: 2027-01-19
+    theme: "Les commandements"
+  - date: 2027-02-02
+    theme: "Le baptême et la confirmation"
+  - date: 2027-02-16
+    theme: "Le Carême : pourquoi (le péché) et comment se confesser (la grâce)"
+  - date: 2027-03-09
+    theme: "La Semaine Sainte, Pâques"
+  - date: 2027-03-23
+    theme: "Le combat spirituel, saint Joseph"
+  - date: 2027-04-06
+    theme: "Le Saint-Esprit, l'Église"
+  - date: 2027-05-04
+    theme: "L'Eucharistie, l'Ascension"
+  - date: 2027-05-18
+    theme: "Le mariage"
+  - date: 2027-06-01
+    theme: "La vie éternelle, les anges"
+  - date: 2027-06-29
+    theme: "Barbecue de fin d'année"

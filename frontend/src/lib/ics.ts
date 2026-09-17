@@ -3,10 +3,11 @@ export interface IcsInput {
   startTime: string;
   theme: string;
   eventInfo: string;
+  address?: string;
   now?: Date;
 }
 
-const DURATION_MINUTES = 30;
+const DURATION_MINUTES = 60;
 
 const VTIMEZONE_PARIS = [
   'BEGIN:VTIMEZONE',
@@ -77,7 +78,14 @@ function fold(line: string): string {
   return physical.join('\r\n ');
 }
 
-export function buildIcs({ date, startTime, theme, eventInfo, now = new Date() }: IcsInput): string {
+export function buildIcs({
+  date,
+  startTime,
+  theme,
+  eventInfo,
+  address = '',
+  now = new Date(),
+}: IcsInput): string {
   const description = [`Thème : ${theme}`, eventInfo].filter(Boolean).join('\n');
   const lines = [
     'BEGIN:VCALENDAR',
@@ -91,8 +99,9 @@ export function buildIcs({ date, startTime, theme, eventInfo, now = new Date() }
     `DTSTAMP:${utcStamp(now)}`,
     `DTSTART;TZID=Europe/Paris:${localStamp(date, startTime)}`,
     `DTEND;TZID=Europe/Paris:${localStamp(date, startTime, DURATION_MINUTES)}`,
-    "SUMMARY:Apéro CRF – je m'en charge",
+    "SUMMARY:Moment convivial CRF – je m'en charge",
     `DESCRIPTION:${escapeText(description)}`,
+    ...(address ? [`LOCATION:${escapeText(address)}`] : []),
     'END:VEVENT',
     'END:VCALENDAR',
   ];

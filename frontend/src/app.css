@@ -68,13 +68,17 @@ a {
 
 h1 {
   margin: 0;
-  font: 600 clamp(2.6rem, 9vw, 4.4rem)/1 var(--serif);
+  font: 600 clamp(2.1rem, 7vw, 3.4rem)/1.05 var(--serif);
   letter-spacing: -0.01em;
 }
 
 h1 em {
+  display: block;
+  margin-top: 0.3rem;
   color: var(--wine);
+  font-size: 0.52em;
   font-weight: 500;
+  line-height: 1.15;
 }
 
 .season {
@@ -91,6 +95,11 @@ h1 em {
   margin: 1.25rem 0;
   color: var(--gold);
   font-size: 1.5rem;
+}
+
+.ornament img {
+  width: 5rem;
+  height: auto;
 }
 
 .ornament::before,
@@ -113,11 +122,26 @@ h1 em {
 .event-info {
   display: inline-block;
   margin: 0.5rem 0 0;
-  padding: 0.5rem 1.1rem;
+  padding: 0.7rem 1.35rem;
   border: 1px solid var(--rule);
-  border-radius: 999px;
+  border-radius: var(--radius);
   background: var(--card);
   font-weight: 600;
+}
+
+.event-info p {
+  margin: 0;
+}
+
+.event-info .address {
+  margin-top: 0.3rem;
+  font-weight: 400;
+}
+
+.event-info .address a {
+  color: var(--gold-text);
+  text-decoration-color: var(--field);
+  text-underline-offset: 0.2em;
 }
 
 /* Grille */

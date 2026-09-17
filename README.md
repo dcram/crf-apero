@@ -62,3 +62,10 @@ en changer).
 - Tag `vX.Y.Z` → image `X.Y.Z` en plus.
 - La CI n'a aucun accès au cluster : le déploiement se fait depuis le dépôt `homelan`
   (`cluster/apps/crf/Readme.md`).
+
+## Suites envisagées
+
+- **Interface d'administration** : ajouter ou supprimer un participant à la main, sans passer
+  par `psql`. Aujourd'hui, libérer un mardi ou corriger une saisie impose une requête SQL sur
+  la base `crf` (voir « Opérations courantes » dans `homelan`, `cluster/apps/crf/Readme.md`).
+  Une page protégée permettrait aux organisateurs de le faire eux-mêmes.

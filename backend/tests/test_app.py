@@ -13,6 +13,8 @@ async def test_calendar_returns_public_config_and_upcoming_sessions(client):
     assert response.status_code == 200
     assert response.json() == {
         "event_info": "Mardi 20h30 – Sainte-Élisabeth",
+        "event_address": "43 rue de Coulmiers, 44000 Nantes",
+        "event_map_url": "https://example.org/plan",
         "contact_email": "contact@example.org",
         "apero_start_time": "21:30",
         "turnstile_site_key": "1x00000000000000000000AA",
