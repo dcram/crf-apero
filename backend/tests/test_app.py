@@ -118,3 +118,16 @@ async def test_admin_page_serves_the_spa(build_app, tmp_path):
         assert response.status_code == 200
         assert "spa" in response.text
         assert response.headers["X-Robots-Tag"] == "noindex"
+
+
+async def test_neighboring_paths_dont_get_admin_headers(client):
+    # /api/administrateurs (similar path) should NOT get admin headers
+    response = await client.get("/api/administrateurs")
+    assert response.status_code == 404
+    assert "Cache-Control" not in response.headers
+    assert "X-Robots-Tag" not in response.headers
+    # /api/admin/bookings (actual admin path) SHOULD get admin headers
+    response = await client.get("/api/admin/bookings")
+    assert response.status_code == 401
+    assert response.headers["Cache-Control"] == "no-store"
+    assert response.headers["X-Robots-Tag"] == "noindex"

@@ -88,7 +88,8 @@ def create_app(
         for name, value in SECURITY_HEADERS.items():
             response.headers.setdefault(name, value)
         # La page d'administration affiche des numéros de téléphone.
-        if request.url.path == "/admin" or request.url.path.startswith("/api/admin"):
+        path = request.url.path
+        if path == "/admin" or path == "/api/admin" or path.startswith("/api/admin/"):
             response.headers["Cache-Control"] = "no-store"
             response.headers["X-Robots-Tag"] = "noindex"
         return response
