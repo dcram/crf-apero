@@ -10,16 +10,20 @@
     booking,
     onsaved,
     oncancel,
+    onsessionlost,
   }: {
     date: string;
     theme: string;
     booking: AdminBooking | null;
     onsaved: () => void;
     oncancel: () => void;
+    onsessionlost: () => void;
   } = $props();
 
-  // La saisie ne doit pas se réinitialiser si `booking` change en cours d'édition :
-  // seule la valeur initiale est capturée, volontairement.
+  // Fige `name`/`phone` à leur valeur initiale : la saisie en cours ne doit pas être
+  // écrasée si `booking` change pendant l'édition. Cas limite accepté : si un autre
+  // organisateur modifie cette même réservation pendant que ce formulaire reste ouvert,
+  // les champs resteront figés sur l'ancienne valeur jusqu'à la prochaine ouverture.
   let name = $state(untrack(() => booking?.name ?? ''));
   let phone = $state(untrack(() => booking?.phone ?? ''));
   let error = $state('');
@@ -39,7 +43,11 @@
       onsaved();
       return;
     }
-    error = outcome.kind === 'unauthorized' ? 'Session expirée, reconnectez-vous.' : outcome.message;
+    if (outcome.kind === 'unauthorized') {
+      onsessionlost();
+      return;
+    }
+    error = outcome.message;
   }
 </script>
 

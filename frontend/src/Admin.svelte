@@ -56,6 +56,11 @@
     load();
   }
 
+  function sessionLost() {
+    editing = null;
+    load();
+  }
+
   onMount(load);
 </script>
 
@@ -111,6 +116,7 @@
                   booking={session.booking}
                   onsaved={saved}
                   oncancel={() => (editing = null)}
+                  onsessionlost={sessionLost}
                 />
               {/if}
             </li>
