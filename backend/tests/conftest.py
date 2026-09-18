@@ -88,7 +88,7 @@ def migrated_db() -> str:
 async def engine(migrated_db):
     eng = make_engine(migrated_db)
     async with eng.begin() as conn:
-        await conn.execute(text("TRUNCATE bookings RESTART IDENTITY"))
+        await conn.execute(text("TRUNCATE bookings, admin_codes RESTART IDENTITY"))
     yield eng
     await eng.dispose()
 
