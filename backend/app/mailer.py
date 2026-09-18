@@ -66,6 +66,23 @@ def build_notification(
     )
 
 
+def build_code_email(
+    *, code: str, ttl_minutes: int, recipient: str, sender: str, reply_to: str
+) -> OutgoingEmail:
+    intro = "Voici votre code de connexion à l'administration de CRF Apéro."
+    validity = f"Il est valable {ttl_minutes} minutes et ne sert qu'une fois."
+    warning = "Si vous n'avez pas demandé ce code, ignorez ce message."
+    return OutgoingEmail(
+        sender=sender,
+        recipients=[recipient],
+        reply_to=reply_to,
+        subject=f"[CRF] Votre code de connexion : {code}",
+        text=f"{intro}\n\n{code}\n\n{validity}\n{warning}\n",
+        html=f'<p>{intro}</p><p style="font-size:2em;letter-spacing:.2em">'
+        f"<strong>{code}</strong></p><p>{validity}</p><p>{warning}</p>",
+    )
+
+
 class ConsoleMailer:
     """Backend de développement : n'envoie rien, journalise l'objet (jamais le corps)."""
 
