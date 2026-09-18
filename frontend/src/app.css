@@ -459,3 +459,27 @@ dialog.sheet::backdrop {
     transition: none !important;
   }
 }
+
+.admin .login {
+  max-width: 24rem;
+  margin: 4rem auto;
+}
+
+.admin .login form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.admin .login input {
+  padding: 0.6rem;
+  font: inherit;
+}
+
+.admin .error {
+  color: #a11;
+}
+
+.admin .notice {
+  font-size: 0.95rem;
+}

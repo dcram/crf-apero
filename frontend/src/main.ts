@@ -5,7 +5,11 @@ import '@fontsource/source-sans-3/600.css';
 import './app.css';
 import { mount } from 'svelte';
 import App from './App.svelte';
+import Admin from './Admin.svelte';
 
-const app = mount(App, { target: document.getElementById('app')! });
+// Deux pages seulement : un routeur serait disproportionné.
+const root = window.location.pathname.replace(/\/$/, '') === '/admin' ? Admin : App;
+
+const app = mount(root, { target: document.getElementById('app')! });
 
 export default app;
