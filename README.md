@@ -34,7 +34,9 @@ export DATABASE_URL=postgresql+asyncpg://crf:crf@localhost:5433/crf \
   TURNSTILE_SITE_KEY=1x00000000000000000000AA \
   TURNSTILE_SECRET=1x0000000000000000000000000000000AA \
   ORGANIZER_EMAILS=orga@example.org MAIL_REPLY_TO=orga@example.org \
-  CONTACT_EMAIL=contact@example.org
+  CONTACT_EMAIL=contact@example.org \
+  ADMIN_EMAILS=admin@example.org ADMIN_SECRET=dev-secret-non-sensible \
+  ADMIN_COOKIE_SECURE=false
 uv run alembic upgrade head && uv run uvicorn --factory app.main:create_app --reload
 
 # Front (terminal 2) — http://localhost:5173, /api est relayé vers :8000
@@ -63,9 +65,28 @@ en changer).
 - La CI n'a aucun accès au cluster : le déploiement se fait depuis le dépôt `homelan`
   (`cluster/apps/crf/Readme.md`).
 
-## Suites envisagées
+## Administration
 
-- **Interface d'administration** : ajouter ou supprimer un participant à la main, sans passer
-  par `psql`. Aujourd'hui, libérer un mardi ou corriger une saisie impose une requête SQL sur
-  la base `crf` (voir « Opérations courantes » dans `homelan`, `cluster/apps/crf/Readme.md`).
-  Une page protégée permettrait aux organisateurs de le faire eux-mêmes.
+<https://crf.fsspnantes.fr/admin> permet aux organisateurs d'ajouter, de remplacer ou de
+supprimer une réservation à la main, sans passer par `psql`.
+
+La connexion se fait sans mot de passe : on saisit son adresse, on reçoit un **code à six
+chiffres** valable dix minutes et utilisable une seule fois, on le saisit. Cinq erreurs
+détruisent le code, et trois demandes par heure et par adresse sont autorisées.
+
+Seules les adresses listées dans `ADMIN_EMAILS` peuvent se connecter. Cette liste est
+**distincte** d'`ORGANIZER_EMAILS`, qui ne fait que recevoir les notifications de réservation.
+Retirer une adresse d'`ADMIN_EMAILS` déconnecte la personne au redémarrage suivant, sans autre
+action. Changer `ADMIN_SECRET` déconnecte tout le monde, immédiatement.
+
+| Variable | Rôle |
+|---|---|
+| `ADMIN_EMAILS` | adresses autorisées, séparées par des virgules |
+| `ADMIN_SECRET` | secret de signature des codes et des cookies — `Secret` Kubernetes, jamais en clair |
+| `ADMIN_SESSION_DAYS` | durée de la session (30 par défaut) |
+| `ADMIN_COOKIE_SECURE` | `false` en développement local, `true` (défaut) en production |
+
+Générer le secret : `python -c "import secrets; print(secrets.token_urlsafe(32))"`.
+
+Le programme de la saison ne se modifie **pas** depuis cette page : il reste dans
+`backend/app/sessions.yaml` (voir « Modifier le programme de la saison » ci-dessus).
