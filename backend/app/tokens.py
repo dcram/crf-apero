@@ -27,12 +27,12 @@ def code_matches(secret: str, email: str, code: str, expected: str) -> bool:
 def sign_session(secret: str, email: str, expires_at: dt.datetime) -> str:
     payload = f"{email}|{int(expires_at.timestamp())}"
     encoded = base64.urlsafe_b64encode(payload.encode()).decode().rstrip("=")
-    return f"{encoded}.{_sign(secret, encoded)}"
+    return f"{encoded}.{_sign(secret, f'session|{encoded}')}"
 
 
 def verify_session(secret: str, token: str, now: dt.datetime) -> str | None:
     encoded, _, signature = token.partition(".")
-    if not signature or not hmac.compare_digest(_sign(secret, encoded), signature):
+    if not signature or not hmac.compare_digest(_sign(secret, f"session|{encoded}"), signature):
         return None
     padding = "=" * (-len(encoded) % 4)
     try:
@@ -41,6 +41,6 @@ def verify_session(secret: str, token: str, now: dt.datetime) -> str | None:
         if not email:
             return None
         deadline = dt.datetime.fromtimestamp(int(expires), tz=dt.UTC)
-    except (binascii.Error, UnicodeDecodeError, ValueError, OverflowError, OSError):
+        return email if deadline > now else None
+    except (binascii.Error, UnicodeDecodeError, ValueError, OverflowError, OSError, TypeError):
         return None
-    return email if deadline > now else None

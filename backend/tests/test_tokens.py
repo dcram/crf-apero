@@ -57,3 +57,9 @@ def test_session_rejects_another_secret():
 def test_session_rejects_garbage():
     for token in ["", "sans-point", "a.b", "!!!.!!!"]:
         assert verify_session(SECRET, token, NOW) is None
+
+
+def test_session_rejects_naive_datetime():
+    token = sign_session(SECRET, EMAIL, LATER)
+    naive_now = dt.datetime(2026, 9, 18, 12, 0)
+    assert verify_session(SECRET, token, naive_now) is None
