@@ -33,3 +33,35 @@ export type BookingFailureKind = 'taken' | 'captcha' | 'rate_limited' | 'invalid
 export type BookingOutcome =
   | { kind: 'ok'; booking: BookingConfirmation }
   | { kind: BookingFailureKind; message: string };
+
+export interface AdminBooking {
+  name: string;
+  phone: string | null;
+  created_at: string;
+}
+
+export interface AdminSessionItem {
+  date: string;
+  theme: string;
+  booking: AdminBooking | null;
+}
+
+export interface AdminOrphan extends AdminBooking {
+  date: string;
+}
+
+export interface AdminCalendar {
+  email: string;
+  sessions: AdminSessionItem[];
+  orphans: AdminOrphan[];
+}
+
+export interface AdminFields {
+  name: string;
+  phone: string | null;
+}
+
+export type AdminResult<T> =
+  | { kind: 'ok'; value: T }
+  | { kind: 'unauthorized' }
+  | { kind: 'error'; message: string };
