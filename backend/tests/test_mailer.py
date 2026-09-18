@@ -112,6 +112,8 @@ def test_make_mailer_selects_backend(monkeypatch):
         organizer_emails="a@example.org",
         mail_reply_to="r@example.org",
         contact_email="c@example.org",
+        admin_emails="admin@example.org",
+        admin_secret="test-secret",
     )
     assert isinstance(make_mailer(Settings(**base, mail_backend="console")), ConsoleMailer)
     assert isinstance(make_mailer(Settings(**base, mail_backend="ses")), SesMailer)

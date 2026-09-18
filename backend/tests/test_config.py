@@ -16,6 +16,8 @@ def test_reads_comma_separated_emails_from_env(monkeypatch):
     for key, value in BASE.items():
         monkeypatch.setenv(key.upper(), value)
     monkeypatch.setenv("ORGANIZER_EMAILS", " a@example.org, b@example.org ,")
+    monkeypatch.setenv("ADMIN_EMAILS", "admin@example.org")
+    monkeypatch.setenv("ADMIN_SECRET", "test-secret")
     settings = Settings()
     assert settings.organizer_emails == ["a@example.org", "b@example.org"]
     assert settings.mail_from == "crf@fsspnantes.fr"
@@ -36,3 +38,28 @@ def test_rejects_bad_apero_time(value):
 def test_rejects_unknown_timezone():
     with pytest.raises(ValidationError):
         Settings(**BASE, organizer_emails="a@example.org", timezone="Mars/Olympus")
+
+
+def test_admin_settings_defaults():
+    settings = Settings(
+        **BASE,
+        organizer_emails="a@example.org",
+        admin_emails=" admin@example.org , ",
+        admin_secret="s",
+    )
+    assert settings.admin_emails == ["admin@example.org"]
+    assert settings.admin_session_days == 30
+    assert settings.admin_code_ttl_minutes == 10
+    assert settings.admin_code_max_attempts == 5
+    assert settings.admin_codes_per_hour == 3
+    assert settings.admin_cookie_secure is True
+
+
+def test_rejects_empty_admin_emails():
+    with pytest.raises(ValidationError):
+        Settings(**BASE, organizer_emails="a@example.org", admin_emails="", admin_secret="s")
+
+
+def test_admin_secret_is_required():
+    with pytest.raises(ValidationError):
+        Settings(**BASE, organizer_emails="a@example.org", admin_emails="admin@example.org")

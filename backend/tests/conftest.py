@@ -36,6 +36,8 @@ def make_settings(**overrides) -> Settings:
         apero_start_time="21:30",
         mail_backend="console",
         sessions_file=FIXTURES / "sessions.yaml",
+        admin_emails="admin1@example.org,admin2@example.org",
+        admin_secret="secret-admin-de-test",
     )
     values.update(overrides)
     return Settings(**values)

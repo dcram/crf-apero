@@ -29,8 +29,15 @@ class Settings(BaseSettings):
     sessions_file: Path = DEFAULT_SESSIONS_FILE
     static_dir: Path | None = None
     rate_limit_per_hour: int = 5
+    admin_emails: Annotated[list[str], NoDecode]
+    admin_secret: str
+    admin_session_days: int = 30
+    admin_code_ttl_minutes: int = 10
+    admin_code_max_attempts: int = 5
+    admin_codes_per_hour: int = 3
+    admin_cookie_secure: bool = True
 
-    @field_validator("organizer_emails", mode="before")
+    @field_validator("organizer_emails", "admin_emails", mode="before")
     @classmethod
     def _split_emails(cls, value: object) -> list[str]:
         items = value.split(",") if isinstance(value, str) else list(value)  # type: ignore[arg-type]
