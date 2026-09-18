@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 from zoneinfo import ZoneInfo
 
 from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.ext.asyncio import AsyncEngine
 
@@ -87,6 +87,10 @@ def create_app(
         response = await call_next(request)
         for name, value in SECURITY_HEADERS.items():
             response.headers.setdefault(name, value)
+        # La page d'administration affiche des numéros de téléphone.
+        if request.url.path == "/admin" or request.url.path.startswith("/api/admin"):
+            response.headers["Cache-Control"] = "no-store"
+            response.headers["X-Robots-Tag"] = "noindex"
         return response
 
     @app.get("/healthz")
@@ -102,6 +106,14 @@ def create_app(
     app.include_router(admin_router)
 
     if settings.static_dir and settings.static_dir.is_dir():
+        index = settings.static_dir / "index.html"
+
+        # StaticFiles ne sert index.html que sur un répertoire : la seconde page de
+        # l'application a besoin de sa propre route.
+        @app.get("/admin", include_in_schema=False)
+        async def admin_page():
+            return FileResponse(index)
+
         app.mount("/", StaticFiles(directory=settings.static_dir, html=True), name="static")
 
     logger.info("%d rencontres chargées depuis %s", len(meetings), settings.sessions_file)

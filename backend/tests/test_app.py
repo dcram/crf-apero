@@ -96,3 +96,25 @@ async def test_now_is_injectable(engine, fake_verifier, fake_mailer):
     )
     assert app.state.deps.now() == moment
     assert app.state.deps.code_limiter is not app.state.deps.limiter
+
+
+async def test_admin_responses_are_never_cached_nor_indexed(client):
+    response = await client.get("/api/admin/bookings")
+    assert response.status_code == 401
+    assert response.headers["Cache-Control"] == "no-store"
+    assert response.headers["X-Robots-Tag"] == "noindex"
+
+
+async def test_public_responses_keep_their_headers(client):
+    response = await client.get("/api/calendar")
+    assert "Cache-Control" not in response.headers
+    assert "X-Robots-Tag" not in response.headers
+
+
+async def test_admin_page_serves_the_spa(build_app, tmp_path):
+    (tmp_path / "index.html").write_text("<html>spa</html>", encoding="utf-8")
+    async with open_client(build_app(static_dir=tmp_path)) as client:
+        response = await client.get("/admin")
+        assert response.status_code == 200
+        assert "spa" in response.text
+        assert response.headers["X-Robots-Tag"] == "noindex"
