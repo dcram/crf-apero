@@ -1,12 +1,21 @@
 import datetime as dt
 import logging
 
-from fastapi import APIRouter, BackgroundTasks, HTTPException, Request, Response
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, Response
 from pydantic import BaseModel, field_validator
 
-from app.db import consume_code, fetch_code, register_failed_attempt, replace_code
+from app.db import (
+    all_bookings,
+    consume_code,
+    delete_booking,
+    fetch_code,
+    register_failed_attempt,
+    replace_code,
+    upsert_booking,
+)
 from app.deps import AppDeps
 from app.mailer import build_code_email, send_safely
+from app.schemas import BookingFields
 from app.tokens import code_matches, generate_code, hash_code, sign_session, verify_session
 
 logger = logging.getLogger(__name__)
@@ -146,3 +155,65 @@ async def close_session(request: Request) -> Response:
         path="/",
     )
     return response
+
+
+def _booking_payload(booking) -> dict:
+    return {
+        "name": booking.name,
+        "phone": booking.phone,
+        "created_at": booking.created_at.isoformat(),
+    }
+
+
+@router.get("/bookings")
+async def list_bookings(request: Request, email: str = Depends(require_admin)) -> dict:
+    deps = get_deps(request)
+    async with deps.sessionmaker() as session:
+        bookings = await all_bookings(session)
+    by_date = {b.tuesday: b for b in bookings}
+    programme = {m.date for m in deps.meetings}
+    return {
+        "email": email,
+        "sessions": [
+            {
+                "date": m.date.isoformat(),
+                "theme": m.theme,
+                "booking": _booking_payload(by_date[m.date]) if m.date in by_date else None,
+            }
+            for m in deps.meetings
+        ],
+        # Une réservation dont le mardi a disparu de sessions.yaml resterait invisible
+        # — donc insupprimable — si on ne la listait pas à part.
+        "orphans": [
+            {"date": b.tuesday.isoformat(), **_booking_payload(b)}
+            for b in bookings
+            if b.tuesday not in programme
+        ],
+    }
+
+
+@router.put("/bookings/{day}")
+async def save_booking(
+    request: Request, day: dt.date, payload: BookingFields, _: str = Depends(require_admin)
+) -> dict:
+    deps = get_deps(request)
+    meeting = deps.meeting_on(day)
+    if meeting is None:
+        raise HTTPException(404, "Ce mardi ne figure pas au programme de la saison.")
+    async with deps.sessionmaker() as session:
+        booking = await upsert_booking(session, tuesday=day, name=payload.name, phone=payload.phone)
+        result = {"date": day.isoformat(), "theme": meeting.theme, **_booking_payload(booking)}
+    logger.info("Réservation du mardi %s enregistrée par un organisateur", day.isoformat())
+    return result
+
+
+@router.delete("/bookings/{day}", status_code=204)
+async def remove_booking(
+    request: Request, day: dt.date, _: str = Depends(require_admin)
+) -> Response:
+    deps = get_deps(request)
+    async with deps.sessionmaker() as session:
+        if not await delete_booking(session, day):
+            raise HTTPException(404, "Aucune réservation pour ce mardi.")
+    logger.info("Réservation du mardi %s supprimée par un organisateur", day.isoformat())
+    return Response(status_code=204)

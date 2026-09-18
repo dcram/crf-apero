@@ -104,3 +104,31 @@ async def register_failed_attempt(
 async def consume_code(session: AsyncSession, code: AdminCode) -> None:
     await session.delete(code)
     await session.commit()
+
+
+async def all_bookings(session: AsyncSession) -> list[Booking]:
+    return list(await session.scalars(select(Booking).order_by(Booking.tuesday)))
+
+
+async def upsert_booking(
+    session: AsyncSession, *, tuesday: dt.date, name: str, phone: str | None
+) -> Booking:
+    """Crée la réservation du mardi, ou remplace son titulaire si elle existe déjà."""
+    booking = await session.scalar(select(Booking).where(Booking.tuesday == tuesday))
+    if booking is None:
+        booking = Booking(tuesday=tuesday, name=name, phone=phone)
+        session.add(booking)
+    else:
+        booking.name = name
+        booking.phone = phone
+    await session.commit()
+    return booking
+
+
+async def delete_booking(session: AsyncSession, tuesday: dt.date) -> bool:
+    booking = await session.scalar(select(Booking).where(Booking.tuesday == tuesday))
+    if booking is None:
+        return False
+    await session.delete(booking)
+    await session.commit()
+    return True

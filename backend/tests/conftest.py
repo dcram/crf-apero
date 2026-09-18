@@ -70,7 +70,9 @@ class FakeMailer:
 @asynccontextmanager
 async def open_client(app):
     transport = httpx.ASGITransport(app=app, client=(CLIENT_IP, 50000))
-    async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+    # https:// : le cookie admin est marqué secure, httpx ne le renverrait jamais
+    # sur les requêtes suivantes si le client parlait en http://.
+    async with httpx.AsyncClient(transport=transport, base_url="https://test") as client:
         yield client
 
 
