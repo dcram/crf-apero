@@ -9,6 +9,7 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.ext.asyncio import AsyncEngine
 
+from app.admin import router as admin_router
 from app.api import router
 from app.config import Settings
 from app.db import make_engine, make_sessionmaker, ping
@@ -98,6 +99,7 @@ def create_app(
         return {"status": "ok"}
 
     app.include_router(router)
+    app.include_router(admin_router)
 
     if settings.static_dir and settings.static_dir.is_dir():
         app.mount("/", StaticFiles(directory=settings.static_dir, html=True), name="static")
