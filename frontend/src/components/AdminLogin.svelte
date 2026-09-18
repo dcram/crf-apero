@@ -16,6 +16,8 @@
     busy = true;
     const outcome = await requestCode(email.trim());
     busy = false;
+    // Le serveur ne renvoie jamais 401 pour cette route : le cas 'unauthorized'
+    // n'a pas lieu d'être distingué ici.
     if (outcome.kind === 'error') {
       error = outcome.message;
       return;
@@ -36,6 +38,7 @@
     const outcome = await openSession(email.trim(), code.trim());
     busy = false;
     if (outcome.kind === 'ok') {
+      code = '';
       onconnected();
       return;
     }

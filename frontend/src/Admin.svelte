@@ -7,6 +7,10 @@
   let calendar = $state<AdminCalendar | null>(null);
   let connected = $state(false);
   let loadError = $state('');
+  // Distingue le premier chargement (pas encore connecté, silencieux) d'un
+  // rechargement après une connexion réussie (une session refusée à ce
+  // stade doit être signalée, pas passée sous silence).
+  let attempted = $state(false);
 
   async function load() {
     const outcome = await fetchAdminBookings();
@@ -14,11 +18,17 @@
       calendar = outcome.value;
       connected = true;
       loadError = '';
+      attempted = true;
       return;
     }
     connected = false;
     calendar = null;
-    loadError = outcome.kind === 'error' ? outcome.message : '';
+    if (outcome.kind === 'unauthorized') {
+      loadError = attempted ? 'La session n\'a pas pu être ouverte, réessayez.' : '';
+    } else {
+      loadError = outcome.message;
+    }
+    attempted = true;
   }
 
   onMount(load);

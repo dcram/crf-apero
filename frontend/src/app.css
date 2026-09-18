@@ -477,7 +477,7 @@ dialog.sheet::backdrop {
 }
 
 .admin .error {
-  color: #a11;
+  color: var(--wine);
 }
 
 .admin .notice {
