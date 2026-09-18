@@ -77,3 +77,17 @@ def test_booking_fields_reject_short_name():
 def test_booking_in_still_requires_the_turnstile_token():
     with pytest.raises(ValidationError):
         BookingIn(date="2030-01-15", name="Jean Dupont")
+
+
+def test_validation_message_prefers_date_over_name():
+    """Ensure date error is returned even if name is also invalid (priority order)."""
+    with pytest.raises(ValidationError) as exc:
+        parse(date="pas-une-date", name="J")
+    assert validation_message(exc.value) == "La date choisie n'est pas valide."
+
+
+def test_validation_message_prefers_name_over_turnstile():
+    """Ensure name error is returned even if turnstile_token is also invalid."""
+    with pytest.raises(ValidationError) as exc:
+        parse(name="J", turnstile_token=" ")
+    assert validation_message(exc.value) == "Merci d'indiquer votre nom (2 à 80 caractères)."

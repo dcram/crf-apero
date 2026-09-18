@@ -57,5 +57,17 @@ class BookingIn(BookingFields):
 
 def validation_message(exc: ValidationError) -> str:
     errors = exc.errors()
-    field = errors[0]["loc"][0] if errors and errors[0]["loc"] else None
-    return _MESSAGES.get(str(field), "Le formulaire est invalide.")
+    if not errors:
+        return "Le formulaire est invalide."
+
+    # Collect all fields with errors
+    error_fields = {str(error["loc"][0]) for error in errors if error["loc"]}
+
+    # Priority order (pre-inheritance field order): date, name, phone, turnstile_token
+    priority = ["date", "name", "phone", "turnstile_token"]
+    for field in priority:
+        if field in error_fields:
+            return _MESSAGES.get(field, "Le formulaire est invalide.")
+
+    # Fallback if none of the priority fields are in error
+    return "Le formulaire est invalide."
