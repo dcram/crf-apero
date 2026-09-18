@@ -110,12 +110,13 @@ def fake_mailer() -> FakeMailer:
 
 @pytest.fixture
 def build_app(engine, fake_verifier, fake_mailer):
-    def _build(today: dt.date = TODAY, **overrides):
+    def _build(today: dt.date = TODAY, now: dt.datetime | None = None, **overrides):
         return create_app(
             make_settings(**overrides),
             verifier=fake_verifier,
             mailer=fake_mailer,
             today=lambda: today,
+            now=(lambda: now) if now else None,
             engine=engine,
         )
 

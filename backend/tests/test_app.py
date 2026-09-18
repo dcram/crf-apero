@@ -83,3 +83,16 @@ def test_invalid_sessions_file_prevents_startup(tmp_path):
     bad.write_text("sessions:\n  - date: 2030-01-02\n    theme: A\n", encoding="utf-8")
     with pytest.raises(SessionsFileError):
         create_app(make_settings(sessions_file=bad), verifier=FakeVerifier(), mailer=FakeMailer())
+
+
+async def test_now_is_injectable(engine, fake_verifier, fake_mailer):
+    moment = dt.datetime(2026, 9, 18, 12, 0, tzinfo=dt.UTC)
+    app = create_app(
+        make_settings(),
+        verifier=fake_verifier,
+        mailer=fake_mailer,
+        now=lambda: moment,
+        engine=engine,
+    )
+    assert app.state.deps.now() == moment
+    assert app.state.deps.code_limiter is not app.state.deps.limiter

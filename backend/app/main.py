@@ -47,6 +47,7 @@ def create_app(
     verifier: Verifier | None = None,
     mailer: Mailer | None = None,
     today: Callable[[], dt.date] | None = None,
+    now: Callable[[], dt.datetime] | None = None,
     engine: AsyncEngine | None = None,
 ) -> FastAPI:
     logging.basicConfig(level=logging.INFO, format="%(levelname)s [%(name)s] %(message)s")
@@ -65,7 +66,9 @@ def create_app(
         verifier=verifier or TurnstileVerifier(settings.turnstile_secret),
         mailer=mailer or make_mailer(settings),
         limiter=RateLimiter(settings.rate_limit_per_hour, window_seconds=3600),
+        code_limiter=RateLimiter(settings.admin_codes_per_hour, window_seconds=3600),
         today=today or (lambda: dt.datetime.now(tz).date()),
+        now=now or (lambda: dt.datetime.now(tz)),
     )
 
     @asynccontextmanager
