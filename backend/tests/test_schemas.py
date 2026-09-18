@@ -3,7 +3,7 @@ import datetime as dt
 import pytest
 from pydantic import ValidationError
 
-from app.schemas import BookingIn, validation_message
+from app.schemas import BookingFields, BookingIn, validation_message
 
 VALID = {"date": "2030-01-01", "name": "Jean Dupont", "turnstile_token": "tok"}
 
@@ -61,3 +61,19 @@ def test_rejects_bad_date():
     with pytest.raises(ValidationError) as exc:
         parse(date="pas-une-date")
     assert validation_message(exc.value) == "La date choisie n'est pas valide."
+
+
+def test_booking_fields_validate_name_and_phone_alone():
+    fields = BookingFields(name="  Jean   Dupont ", phone="06 12 34 56 78")
+    assert fields.name == "Jean Dupont"
+    assert fields.phone == "0612345678"
+
+
+def test_booking_fields_reject_short_name():
+    with pytest.raises(ValidationError):
+        BookingFields(name="J")
+
+
+def test_booking_in_still_requires_the_turnstile_token():
+    with pytest.raises(ValidationError):
+        BookingIn(date="2030-01-15", name="Jean Dupont")

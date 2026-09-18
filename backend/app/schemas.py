@@ -15,12 +15,9 @@ _MESSAGES = {
 }
 
 
-class BookingIn(BaseModel):
-    date: dt.date
+class BookingFields(BaseModel):
     name: str
     phone: str | None = None
-    turnstile_token: str
-    website: str = ""
 
     @field_validator("name")
     @classmethod
@@ -43,6 +40,12 @@ class BookingIn(BaseModel):
         if not _PHONE.fullmatch(compact):
             raise ValueError("téléphone invalide")
         return compact
+
+
+class BookingIn(BookingFields):
+    date: dt.date
+    turnstile_token: str
+    website: str = ""
 
     @field_validator("turnstile_token")
     @classmethod
