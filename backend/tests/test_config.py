@@ -9,15 +9,17 @@ BASE = dict(
     turnstile_secret="secret",
     mail_reply_to="orgas@example.org",
     contact_email="contact@example.org",
+    admin_emails="admin@example.org",
+    admin_secret="s",
 )
+
+BASE_WITHOUT_ADMIN = {k: v for k, v in BASE.items() if k not in ("admin_emails", "admin_secret")}
 
 
 def test_reads_comma_separated_emails_from_env(monkeypatch):
     for key, value in BASE.items():
         monkeypatch.setenv(key.upper(), value)
     monkeypatch.setenv("ORGANIZER_EMAILS", " a@example.org, b@example.org ,")
-    monkeypatch.setenv("ADMIN_EMAILS", "admin@example.org")
-    monkeypatch.setenv("ADMIN_SECRET", "test-secret")
     settings = Settings()
     assert settings.organizer_emails == ["a@example.org", "b@example.org"]
     assert settings.mail_from == "crf@fsspnantes.fr"
@@ -42,7 +44,7 @@ def test_rejects_unknown_timezone():
 
 def test_admin_settings_defaults():
     settings = Settings(
-        **BASE,
+        **BASE_WITHOUT_ADMIN,
         organizer_emails="a@example.org",
         admin_emails=" admin@example.org , ",
         admin_secret="s",
@@ -57,9 +59,18 @@ def test_admin_settings_defaults():
 
 def test_rejects_empty_admin_emails():
     with pytest.raises(ValidationError):
-        Settings(**BASE, organizer_emails="a@example.org", admin_emails="", admin_secret="s")
+        Settings(
+            **BASE_WITHOUT_ADMIN,
+            organizer_emails="a@example.org",
+            admin_emails="",
+            admin_secret="s",
+        )
 
 
 def test_admin_secret_is_required():
     with pytest.raises(ValidationError):
-        Settings(**BASE, organizer_emails="a@example.org", admin_emails="admin@example.org")
+        Settings(
+            **BASE_WITHOUT_ADMIN,
+            organizer_emails="a@example.org",
+            admin_emails="admin@example.org",
+        )
