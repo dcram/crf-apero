@@ -6,7 +6,6 @@ from tests.conftest import open_client
 
 ADMIN = "admin1@example.org"
 NOW = dt.datetime(2026, 9, 18, 12, 0, tzinfo=dt.UTC)
-SECRET = "secret-admin-de-test"
 
 
 def code_from(mailer) -> str:
@@ -48,7 +47,14 @@ async def test_email_is_matched_case_insensitively(client, fake_mailer):
 
 
 async def test_valid_code_sets_the_cookie(client, fake_mailer):
-    await login(client, fake_mailer)
+    await client.post("/api/admin/login", json={"email": ADMIN})
+    code = code_from(fake_mailer)
+    response = await client.post("/api/admin/session", json={"email": ADMIN, "code": code})
+    assert response.status_code == 204
+    cookie_header = response.headers.get("set-cookie", "").lower()
+    assert "httponly" in cookie_header
+    assert "samesite=strict" in cookie_header
+    assert "path=/" in cookie_header
     assert client.cookies.get(COOKIE_NAME)
 
 
@@ -106,7 +112,12 @@ async def test_fourth_code_request_is_rate_limited(client, fake_mailer):
 
 async def test_logout_clears_the_cookie(client, fake_mailer):
     await login(client, fake_mailer)
-    assert (await client.delete("/api/admin/session")).status_code == 204
+    response = await client.delete("/api/admin/session")
+    assert response.status_code == 204
+    cookie_header = response.headers.get("set-cookie", "").lower()
+    assert "httponly" in cookie_header
+    assert "samesite=strict" in cookie_header
+    assert "path=/" in cookie_header
     assert not client.cookies.get(COOKIE_NAME)
 
 

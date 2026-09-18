@@ -1,7 +1,7 @@
 import datetime as dt
 import logging
 
-from fastapi import APIRouter, HTTPException, Request, Response
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Request, Response
 from pydantic import BaseModel, field_validator
 
 from app.db import consume_code, fetch_code, register_failed_attempt, replace_code
@@ -64,8 +64,10 @@ async def require_admin(request: Request) -> str:
 
 
 @router.post("/login", status_code=204)
-async def request_code(request: Request, payload: LoginIn) -> Response:
+async def request_code(request: Request, payload: LoginIn, background: BackgroundTasks) -> Response:
     deps = get_deps(request)
+    # Le comptage précède la vérification de l'allowlist : sinon une adresse inconnue
+    # ne consommerait jamais son quota et permettrait de sonder les adresses sans limite.
     if not deps.code_limiter.hit(payload.email):
         raise HTTPException(429, "Trop de demandes, réessayez dans un moment.")
 
@@ -92,7 +94,9 @@ async def request_code(request: Request, payload: LoginIn) -> Response:
         sender=settings.mail_from,
         reply_to=settings.mail_reply_to,
     )
-    send_safely(deps.mailer, email, deps.today())
+    # Envoi en tâche de fond : un envoi SES synchrone bloquerait la réponse et créerait
+    # un écart de temps mesurable entre adresse admin et adresse inconnue.
+    background.add_task(send_safely, deps.mailer, email, deps.today())
     return Response(status_code=204)
 
 
