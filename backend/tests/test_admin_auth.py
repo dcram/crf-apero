@@ -55,7 +55,14 @@ async def test_valid_code_sets_the_cookie(client, fake_mailer):
     assert "httponly" in cookie_header
     assert "samesite=strict" in cookie_header
     assert "path=/" in cookie_header
+    assert "secure" in cookie_header
     assert client.cookies.get(COOKIE_NAME)
+
+
+async def test_cookie_authenticates_a_protected_route(client, fake_mailer):
+    await login(client, fake_mailer)
+    response = await client.get("/api/admin/bookings")
+    assert response.status_code == 200
 
 
 async def test_wrong_code_is_403(client, fake_mailer):

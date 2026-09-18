@@ -2,9 +2,10 @@ import datetime as dt
 import logging
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, Response
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, ValidationError, field_validator
 
 from app.db import (
+    Booking,
     all_bookings,
     consume_code,
     delete_booking,
@@ -15,7 +16,7 @@ from app.db import (
 )
 from app.deps import AppDeps
 from app.mailer import build_code_email, send_safely
-from app.schemas import BookingFields
+from app.schemas import BookingFields, validation_message
 from app.tokens import code_matches, generate_code, hash_code, sign_session, verify_session
 
 logger = logging.getLogger(__name__)
@@ -157,7 +158,7 @@ async def close_session(request: Request) -> Response:
     return response
 
 
-def _booking_payload(booking) -> dict:
+def _booking_payload(booking: Booking) -> dict:
     return {
         "name": booking.name,
         "phone": booking.phone,
@@ -193,15 +194,25 @@ async def list_bookings(request: Request, email: str = Depends(require_admin)) -
 
 
 @router.put("/bookings/{day}")
-async def save_booking(
-    request: Request, day: dt.date, payload: BookingFields, _: str = Depends(require_admin)
-) -> dict:
+async def save_booking(request: Request, day: dt.date, _: str = Depends(require_admin)) -> dict:
     deps = get_deps(request)
     meeting = deps.meeting_on(day)
     if meeting is None:
         raise HTTPException(404, "Ce mardi ne figure pas au programme de la saison.")
+    # Validation manuelle, comme la route publique : la page d'administration
+    # doit recevoir le même message d'erreur que le formulaire de réservation.
+    try:
+        body = await request.json()
+    except ValueError:
+        raise HTTPException(422, "Le formulaire est invalide.") from None
+    if not isinstance(body, dict):
+        raise HTTPException(422, "Le formulaire est invalide.")
+    try:
+        fields = BookingFields.model_validate(body)
+    except ValidationError as exc:
+        raise HTTPException(422, validation_message(exc)) from None
     async with deps.sessionmaker() as session:
-        booking = await upsert_booking(session, tuesday=day, name=payload.name, phone=payload.phone)
+        booking = await upsert_booking(session, tuesday=day, name=fields.name, phone=fields.phone)
         result = {"date": day.isoformat(), "theme": meeting.theme, **_booking_payload(booking)}
     logger.info("Réservation du mardi %s enregistrée par un organisateur", day.isoformat())
     return result

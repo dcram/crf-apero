@@ -113,14 +113,27 @@ async def all_bookings(session: AsyncSession) -> list[Booking]:
 async def upsert_booking(
     session: AsyncSession, *, tuesday: dt.date, name: str, phone: str | None
 ) -> Booking:
-    """Crée la réservation du mardi, ou remplace son titulaire si elle existe déjà."""
+    """Crée la réservation du mardi, ou remplace son titulaire si elle existe déjà.
+
+    Deux créations simultanées sur le même mardi (deux organisateurs, ou un
+    organisateur et une réservation publique) font échouer l'INSERT du perdant sur
+    la contrainte d'unicité. La sémantique de PUT est « ce mardi a désormais ce
+    titulaire » : on rejoue alors le remplacement plutôt que de renvoyer une erreur.
+    """
     booking = await session.scalar(select(Booking).where(Booking.tuesday == tuesday))
     if booking is None:
         booking = Booking(tuesday=tuesday, name=name, phone=phone)
         session.add(booking)
-    else:
-        booking.name = name
-        booking.phone = phone
+        try:
+            await session.commit()
+            return booking
+        except IntegrityError:
+            await session.rollback()
+            booking = await session.scalar(select(Booking).where(Booking.tuesday == tuesday))
+    # created_at doit décrire le titulaire courant, pas celui qu'on remplace.
+    booking.name = name
+    booking.phone = phone
+    booking.created_at = dt.datetime.now(dt.UTC)
     await session.commit()
     return booking
 
