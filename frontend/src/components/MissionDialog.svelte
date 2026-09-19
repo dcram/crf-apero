@@ -8,8 +8,17 @@
   onMount(() => dialog?.showModal());
 </script>
 
-<dialog bind:this={dialog} class="sheet" aria-labelledby="mission-title" {onclose}>
+<dialog bind:this={dialog} class="sheet wide" aria-labelledby="mission-title" {onclose}>
   <div class="sheet-body mission">
+    <button
+      type="button"
+      class="sheet-close"
+      aria-label="Fermer"
+      onclick={() => dialog?.close()}
+    >
+      ×
+    </button>
+
     <header>
       <p class="eyebrow">Ce qu'on vous demande</p>
       <h2 id="mission-title">Votre mission</h2>

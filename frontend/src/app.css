@@ -578,3 +578,37 @@ dialog.sheet::backdrop {
   margin: 0;
   font-size: 0.95rem;
 }
+
+.mission {
+  position: relative;
+}
+
+.sheet-close {
+  position: absolute;
+  top: 0.9rem;
+  right: 0.9rem;
+  padding: 0.1rem 0.5rem 0.25rem;
+  border: none;
+  border-radius: 999px;
+  background: none;
+  color: var(--ink-soft);
+  font: 400 1.6rem/1 var(--sans);
+  cursor: pointer;
+}
+
+.sheet-close:hover {
+  background: var(--rule);
+  color: var(--ink);
+}
+
+/* La fenêtre de mission porte plus de texte que celle de réservation. */
+@media (min-width: 40rem) {
+  dialog.sheet.wide {
+    width: min(46rem, calc(100% - 2rem));
+  }
+
+  .mission .sheet-body,
+  .sheet-body.mission {
+    padding: 2.25rem 2.5rem;
+  }
+}
