@@ -6,7 +6,10 @@ _MAX_KEYS = 10_000
 
 
 class RateLimiter:
-    """Fenêtre glissante en mémoire, par clé (IP). Suffisant pour un seul replica."""
+    """Fenêtre glissante en mémoire, par clé arbitraire (IP, adresse e-mail...).
+
+    Suffisant pour un seul replica.
+    """
 
     def __init__(
         self, limit: int, window_seconds: float, clock: Callable[[], float] = time.monotonic

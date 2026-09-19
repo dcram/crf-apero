@@ -20,7 +20,9 @@ class AppDeps:
     verifier: Verifier
     mailer: Mailer
     limiter: RateLimiter
+    code_limiter: RateLimiter
     today: Callable[[], dt.date]
+    now: Callable[[], dt.datetime]
 
     def upcoming(self) -> list[Meeting]:
         today = self.today()

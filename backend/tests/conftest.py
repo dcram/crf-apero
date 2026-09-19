@@ -36,6 +36,8 @@ def make_settings(**overrides) -> Settings:
         apero_start_time="21:30",
         mail_backend="console",
         sessions_file=FIXTURES / "sessions.yaml",
+        admin_emails="admin1@example.org,admin2@example.org",
+        admin_secret="secret-admin-de-test",
     )
     values.update(overrides)
     return Settings(**values)
@@ -68,7 +70,9 @@ class FakeMailer:
 @asynccontextmanager
 async def open_client(app):
     transport = httpx.ASGITransport(app=app, client=(CLIENT_IP, 50000))
-    async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+    # https:// : le cookie admin est marqué secure, httpx ne le renverrait jamais
+    # sur les requêtes suivantes si le client parlait en http://.
+    async with httpx.AsyncClient(transport=transport, base_url="https://test") as client:
         yield client
 
 
@@ -86,7 +90,7 @@ def migrated_db() -> str:
 async def engine(migrated_db):
     eng = make_engine(migrated_db)
     async with eng.begin() as conn:
-        await conn.execute(text("TRUNCATE bookings RESTART IDENTITY"))
+        await conn.execute(text("TRUNCATE bookings, admin_codes RESTART IDENTITY"))
     yield eng
     await eng.dispose()
 
@@ -108,12 +112,13 @@ def fake_mailer() -> FakeMailer:
 
 @pytest.fixture
 def build_app(engine, fake_verifier, fake_mailer):
-    def _build(today: dt.date = TODAY, **overrides):
+    def _build(today: dt.date = TODAY, now: dt.datetime | None = None, **overrides):
         return create_app(
             make_settings(**overrides),
             verifier=fake_verifier,
             mailer=fake_mailer,
             today=lambda: today,
+            now=(lambda: now) if now else None,
             engine=engine,
         )
 

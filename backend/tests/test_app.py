@@ -83,3 +83,51 @@ def test_invalid_sessions_file_prevents_startup(tmp_path):
     bad.write_text("sessions:\n  - date: 2030-01-02\n    theme: A\n", encoding="utf-8")
     with pytest.raises(SessionsFileError):
         create_app(make_settings(sessions_file=bad), verifier=FakeVerifier(), mailer=FakeMailer())
+
+
+async def test_now_is_injectable(engine, fake_verifier, fake_mailer):
+    moment = dt.datetime(2026, 9, 18, 12, 0, tzinfo=dt.UTC)
+    app = create_app(
+        make_settings(),
+        verifier=fake_verifier,
+        mailer=fake_mailer,
+        now=lambda: moment,
+        engine=engine,
+    )
+    assert app.state.deps.now() == moment
+    assert app.state.deps.code_limiter is not app.state.deps.limiter
+
+
+async def test_admin_responses_are_never_cached_nor_indexed(client):
+    response = await client.get("/api/admin/bookings")
+    assert response.status_code == 401
+    assert response.headers["Cache-Control"] == "no-store"
+    assert response.headers["X-Robots-Tag"] == "noindex"
+
+
+async def test_public_responses_keep_their_headers(client):
+    response = await client.get("/api/calendar")
+    assert "Cache-Control" not in response.headers
+    assert "X-Robots-Tag" not in response.headers
+
+
+async def test_admin_page_serves_the_spa(build_app, tmp_path):
+    (tmp_path / "index.html").write_text("<html>spa</html>", encoding="utf-8")
+    async with open_client(build_app(static_dir=tmp_path)) as client:
+        response = await client.get("/admin")
+        assert response.status_code == 200
+        assert "spa" in response.text
+        assert response.headers["X-Robots-Tag"] == "noindex"
+
+
+async def test_neighboring_paths_dont_get_admin_headers(client):
+    # /api/administrateurs (chemin voisin) ne doit PAS recevoir les en-têtes admin
+    response = await client.get("/api/administrateurs")
+    assert response.status_code == 404
+    assert "Cache-Control" not in response.headers
+    assert "X-Robots-Tag" not in response.headers
+    # /api/admin/bookings (chemin admin réel) DOIT recevoir les en-têtes admin
+    response = await client.get("/api/admin/bookings")
+    assert response.status_code == 401
+    assert response.headers["Cache-Control"] == "no-store"
+    assert response.headers["X-Robots-Tag"] == "noindex"

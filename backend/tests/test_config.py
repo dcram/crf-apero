@@ -9,7 +9,11 @@ BASE = dict(
     turnstile_secret="secret",
     mail_reply_to="orgas@example.org",
     contact_email="contact@example.org",
+    admin_emails="admin@example.org",
+    admin_secret="s",
 )
+
+BASE_WITHOUT_ADMIN = {k: v for k, v in BASE.items() if k not in ("admin_emails", "admin_secret")}
 
 
 def test_reads_comma_separated_emails_from_env(monkeypatch):
@@ -36,3 +40,37 @@ def test_rejects_bad_apero_time(value):
 def test_rejects_unknown_timezone():
     with pytest.raises(ValidationError):
         Settings(**BASE, organizer_emails="a@example.org", timezone="Mars/Olympus")
+
+
+def test_admin_settings_defaults():
+    settings = Settings(
+        **BASE_WITHOUT_ADMIN,
+        organizer_emails="a@example.org",
+        admin_emails=" admin@example.org , ",
+        admin_secret="s",
+    )
+    assert settings.admin_emails == ["admin@example.org"]
+    assert settings.admin_session_days == 30
+    assert settings.admin_code_ttl_minutes == 10
+    assert settings.admin_code_max_attempts == 5
+    assert settings.admin_codes_per_hour == 3
+    assert settings.admin_cookie_secure is True
+
+
+def test_rejects_empty_admin_emails():
+    with pytest.raises(ValidationError):
+        Settings(
+            **BASE_WITHOUT_ADMIN,
+            organizer_emails="a@example.org",
+            admin_emails="",
+            admin_secret="s",
+        )
+
+
+def test_admin_secret_is_required():
+    with pytest.raises(ValidationError):
+        Settings(
+            **BASE_WITHOUT_ADMIN,
+            organizer_emails="a@example.org",
+            admin_emails="admin@example.org",
+        )

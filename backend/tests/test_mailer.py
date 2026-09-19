@@ -9,6 +9,7 @@ from app.mailer import (
     ConsoleMailer,
     OutgoingEmail,
     SesMailer,
+    build_code_email,
     build_notification,
     make_mailer,
     send_safely,
@@ -112,6 +113,34 @@ def test_make_mailer_selects_backend(monkeypatch):
         organizer_emails="a@example.org",
         mail_reply_to="r@example.org",
         contact_email="c@example.org",
+        admin_emails="admin@example.org",
+        admin_secret="test-secret",
     )
     assert isinstance(make_mailer(Settings(**base, mail_backend="console")), ConsoleMailer)
     assert isinstance(make_mailer(Settings(**base, mail_backend="ses")), SesMailer)
+
+
+def test_build_code_email():
+    email = build_code_email(
+        code="012345",
+        ttl_minutes=10,
+        recipient="admin@example.org",
+        sender="crf@fsspnantes.fr",
+        reply_to="orgas@example.org",
+    )
+    assert email.recipients == ["admin@example.org"]
+    assert email.subject == "[CRF] Votre code de connexion : 012345"
+    assert "012345" in email.text
+    assert "012345" in email.html
+    assert "10 minutes" in email.text
+
+
+def test_code_email_goes_to_a_single_recipient():
+    email = build_code_email(
+        code="000001",
+        ttl_minutes=5,
+        recipient="admin@example.org",
+        sender="crf@fsspnantes.fr",
+        reply_to="orgas@example.org",
+    )
+    assert len(email.recipients) == 1

@@ -7,6 +7,8 @@ _PHONE_SEPARATORS = re.compile(r"[\s.\-]")
 _PHONE = re.compile(r"0[1-9]\d{8}|\+33[1-9]\d{8}")
 _CONTROL_CHARS = re.compile(r"[\x00-\x1f\x7f]")
 
+INVALID_FORM = "Le formulaire est invalide."
+
 _MESSAGES = {
     "name": "Merci d'indiquer votre nom (2 à 80 caractères).",
     "phone": "Le numéro de téléphone n'est pas valide.",
@@ -15,12 +17,9 @@ _MESSAGES = {
 }
 
 
-class BookingIn(BaseModel):
-    date: dt.date
+class BookingFields(BaseModel):
     name: str
     phone: str | None = None
-    turnstile_token: str
-    website: str = ""
 
     @field_validator("name")
     @classmethod
@@ -44,6 +43,12 @@ class BookingIn(BaseModel):
             raise ValueError("téléphone invalide")
         return compact
 
+
+class BookingIn(BookingFields):
+    date: dt.date
+    turnstile_token: str
+    website: str = ""
+
     @field_validator("turnstile_token")
     @classmethod
     def _check_token(cls, value: str) -> str:
@@ -54,5 +59,17 @@ class BookingIn(BaseModel):
 
 def validation_message(exc: ValidationError) -> str:
     errors = exc.errors()
-    field = errors[0]["loc"][0] if errors and errors[0]["loc"] else None
-    return _MESSAGES.get(str(field), "Le formulaire est invalide.")
+    if not errors:
+        return INVALID_FORM
+
+    # Rassemble les champs en erreur, pour ne garder que le premier à afficher.
+    error_fields = {str(error["loc"][0]) for error in errors if error["loc"]}
+
+    # Ordre d'affichage (ordre des champs avant héritage) : date, name, phone, turnstile_token.
+    priority = ["date", "name", "phone", "turnstile_token"]
+    for field in priority:
+        if field in error_fields:
+            return _MESSAGES.get(field, INVALID_FORM)
+
+    # Repli si aucun des champs prioritaires n'est en erreur.
+    return INVALID_FORM

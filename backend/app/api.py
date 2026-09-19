@@ -6,14 +6,12 @@ from pydantic import ValidationError
 from app.db import DateAlreadyTaken, create_booking, taken_dates
 from app.deps import AppDeps
 from app.mailer import build_notification, send_safely
-from app.schemas import BookingIn, validation_message
+from app.schemas import INVALID_FORM, BookingIn, validation_message
 from app.turnstile import TurnstileUnavailable
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api")
-
-INVALID_FORM = "Le formulaire est invalide."
 
 
 def get_deps(request: Request) -> AppDeps:

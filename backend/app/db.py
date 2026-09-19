@@ -1,6 +1,6 @@
 import datetime as dt
 
-from sqlalchemy import Date, DateTime, Integer, Text, UniqueConstraint, func, select, text
+from sqlalchemy import Date, DateTime, Integer, Text, UniqueConstraint, delete, func, select, text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
@@ -23,6 +23,19 @@ class Booking(Base):
     tuesday: Mapped[dt.date] = mapped_column(Date, nullable=False)
     name: Mapped[str] = mapped_column(Text, nullable=False)
     phone: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[dt.datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+
+class AdminCode(Base):
+    __tablename__ = "admin_codes"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    email: Mapped[str] = mapped_column(Text, nullable=False, index=True)
+    code_hash: Mapped[str] = mapped_column(Text, nullable=False)
+    expires_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    attempts: Mapped[int] = mapped_column(Integer, nullable=False, server_default="0")
     created_at: Mapped[dt.datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
@@ -58,3 +71,77 @@ async def create_booking(
 async def ping(engine: AsyncEngine) -> None:
     async with engine.connect() as conn:
         await conn.execute(text("SELECT 1"))
+
+
+async def replace_code(
+    session: AsyncSession,
+    *,
+    email: str,
+    code_hash: str,
+    expires_at: dt.datetime,
+    now: dt.datetime,
+) -> None:
+    """Un seul code valable par adresse : le précédent est effacé, les expirés aussi."""
+    await session.execute(delete(AdminCode).where(AdminCode.email == email))
+    await session.execute(delete(AdminCode).where(AdminCode.expires_at <= now))
+    session.add(AdminCode(email=email, code_hash=code_hash, expires_at=expires_at))
+    await session.commit()
+
+
+async def fetch_code(session: AsyncSession, email: str) -> AdminCode | None:
+    return await session.scalar(select(AdminCode).where(AdminCode.email == email))
+
+
+async def register_failed_attempt(
+    session: AsyncSession, code: AdminCode, *, max_attempts: int
+) -> None:
+    code.attempts += 1
+    if code.attempts >= max_attempts:
+        await session.delete(code)
+    await session.commit()
+
+
+async def consume_code(session: AsyncSession, code: AdminCode) -> None:
+    await session.delete(code)
+    await session.commit()
+
+
+async def all_bookings(session: AsyncSession) -> list[Booking]:
+    return list(await session.scalars(select(Booking).order_by(Booking.tuesday)))
+
+
+async def upsert_booking(
+    session: AsyncSession, *, tuesday: dt.date, name: str, phone: str | None
+) -> Booking:
+    """Crée la réservation du mardi, ou remplace son titulaire si elle existe déjà.
+
+    Deux créations simultanées sur le même mardi (deux organisateurs, ou un
+    organisateur et une réservation publique) font échouer l'INSERT du perdant sur
+    la contrainte d'unicité. La sémantique de PUT est « ce mardi a désormais ce
+    titulaire » : on rejoue alors le remplacement plutôt que de renvoyer une erreur.
+    """
+    booking = await session.scalar(select(Booking).where(Booking.tuesday == tuesday))
+    if booking is None:
+        booking = Booking(tuesday=tuesday, name=name, phone=phone)
+        session.add(booking)
+        try:
+            await session.commit()
+            return booking
+        except IntegrityError:
+            await session.rollback()
+            booking = await session.scalar(select(Booking).where(Booking.tuesday == tuesday))
+    # created_at doit décrire le titulaire courant, pas celui qu'on remplace.
+    booking.name = name
+    booking.phone = phone
+    booking.created_at = dt.datetime.now(dt.UTC)
+    await session.commit()
+    return booking
+
+
+async def delete_booking(session: AsyncSession, tuesday: dt.date) -> bool:
+    booking = await session.scalar(select(Booking).where(Booking.tuesday == tuesday))
+    if booking is None:
+        return False
+    await session.delete(booking)
+    await session.commit()
+    return True

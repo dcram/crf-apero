@@ -31,6 +31,9 @@ services:
       EVENT_INFO: "Mardi 20h30 – Sainte-Élisabeth, 43 rue de Coulmiers"
       APERO_START_TIME: "21:30"
       MAIL_BACKEND: console
+      ADMIN_EMAILS: admin@example.org
+      ADMIN_SECRET: dev-secret-non-sensible
+      ADMIN_COOKIE_SECURE: "false"
     ports:
       - "8000:8000"
     read_only: true
