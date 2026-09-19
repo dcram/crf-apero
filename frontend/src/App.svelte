@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import BookingDialog from './components/BookingDialog.svelte';
+  import MissionDialog from './components/MissionDialog.svelte';
   import SessionCard from './components/SessionCard.svelte';
   import { fetchCalendar } from './lib/api';
   import { groupByMonth } from './lib/dates';
@@ -11,6 +12,7 @@
   let calendar = $state<Calendar | null>(null);
   let loadError = $state(false);
   let selected = $state<SessionItem | null>(null);
+  let showMission = $state(false);
 
   const groups = $derived(calendar ? groupByMonth(calendar.sessions) : []);
   const allTaken = $derived(
@@ -50,10 +52,13 @@
     {#if season}<p class="season">Saison {season}</p>{/if}
     <div class="ornament" aria-hidden="true"><img src="/logo-crf.png" alt="" /></div>
     <p class="lead">
-      Un mardi sur deux, le parcours <em>Commencer – Recommencer dans la Foi</em> se termine par
-      un moment convivial. Chaque fois, un paroissien différent l'offre : il apporte de quoi boire
-      et grignoter, et repart avec ce qui reste. C'est l'occasion de rencontrer ceux qui découvrent
-      ou redécouvrent la foi.
+      Nous faisons appel aux paroissiens pour offrir, à tour de rôle, l'apéritif qui suit
+      l'enseignement des commençants et recommençants dans la foi.
+    </p>
+    <p class="lead">
+      <button type="button" class="secondary" onclick={() => (showMission = true)}>
+        Découvrir votre mission
+      </button>
     </p>
     <p class="lead">Choisissez le mardi qui vous convient.</p>
     {#if calendar?.event_info || calendar?.event_address}
@@ -115,4 +120,11 @@
 
 {#if selected && calendar}
   <BookingDialog session={selected} {calendar} onclose={closeDialog} />
+{/if}
+
+{#if showMission}
+  <MissionDialog
+    contactEmail={calendar?.contact_email ?? ''}
+    onclose={() => (showMission = false)}
+  />
 {/if}
