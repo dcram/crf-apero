@@ -16,7 +16,7 @@ from app.db import (
 )
 from app.deps import AppDeps
 from app.mailer import build_code_email, send_safely
-from app.schemas import BookingFields, validation_message
+from app.schemas import INVALID_FORM, BookingFields, validation_message
 from app.tokens import code_matches, generate_code, hash_code, sign_session, verify_session
 
 logger = logging.getLogger(__name__)
@@ -204,9 +204,9 @@ async def save_booking(request: Request, day: dt.date, _: str = Depends(require_
     try:
         body = await request.json()
     except ValueError:
-        raise HTTPException(422, "Le formulaire est invalide.") from None
+        raise HTTPException(422, INVALID_FORM) from None
     if not isinstance(body, dict):
-        raise HTTPException(422, "Le formulaire est invalide.")
+        raise HTTPException(422, INVALID_FORM)
     try:
         fields = BookingFields.model_validate(body)
     except ValidationError as exc:

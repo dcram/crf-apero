@@ -14,6 +14,11 @@
   // rechargement après une connexion réussie (une session refusée à ce
   // stade doit être signalée, pas passée sous silence).
   let attempted = $state(false);
+  // Une session déjà établie qui échoue à se recharger a expiré ; une
+  // tentative de connexion qui échoue vient juste d'être refusée. Les deux
+  // cas passent par la même branche `unauthorized` de load() mais méritent
+  // des messages différents.
+  let hadSession = $state(false);
 
   const groups = $derived(calendar ? groupByMonth(calendar.sessions) : []);
 
@@ -24,16 +29,24 @@
       connected = true;
       loadError = '';
       attempted = true;
+      hadSession = true;
       return;
     }
     connected = false;
     calendar = null;
     if (outcome.kind === 'unauthorized') {
-      loadError = attempted ? 'La session n\'a pas pu être ouverte, réessayez.' : '';
+      if (!attempted) {
+        loadError = '';
+      } else if (hadSession) {
+        loadError = 'Votre session a expiré, reconnectez-vous.';
+      } else {
+        loadError = 'La connexion a échoué, réessayez.';
+      }
     } else {
       loadError = outcome.message;
     }
     attempted = true;
+    hadSession = false;
   }
 
   async function remove(date: string, name: string) {
@@ -48,6 +61,9 @@
 
   async function logout() {
     await closeSession();
+    // Déconnexion volontaire et réussie : le prochain rechargement échouera
+    // forcément (plus de session), mais il ne faut rien signaler.
+    attempted = false;
     await load();
   }
 

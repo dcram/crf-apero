@@ -310,6 +310,17 @@ button {
   color: var(--ink);
 }
 
+.danger {
+  border: 1px solid var(--wine);
+  background: transparent;
+  color: var(--wine);
+}
+
+.danger:hover {
+  background: var(--wine);
+  color: #fff;
+}
+
 .card .primary {
   width: 100%;
 }

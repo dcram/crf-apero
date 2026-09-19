@@ -76,8 +76,10 @@ détruisent le code, et trois demandes par heure et par adresse sont autorisées
 
 Seules les adresses listées dans `ADMIN_EMAILS` peuvent se connecter. Cette liste est
 **distincte** d'`ORGANIZER_EMAILS`, qui ne fait que recevoir les notifications de réservation.
-Retirer une adresse d'`ADMIN_EMAILS` déconnecte la personne au redémarrage suivant, sans autre
-action. Changer `ADMIN_SECRET` déconnecte tout le monde, immédiatement.
+`Settings` est lu au démarrage du processus : retirer une adresse d'`ADMIN_EMAILS` ou changer
+`ADMIN_SECRET` (bouton d'urgence pour invalider toutes les sessions) ne prend effet qu'au
+redémarrage suivant, sans autre action. Sans `ADMIN_EMAILS` ni `ADMIN_SECRET`, l'application ne
+démarre pas — c'est voulu, mieux vaut un échec bruyant qu'une administration ouverte.
 
 | Variable | Rôle |
 |---|---|

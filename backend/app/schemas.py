@@ -7,6 +7,8 @@ _PHONE_SEPARATORS = re.compile(r"[\s.\-]")
 _PHONE = re.compile(r"0[1-9]\d{8}|\+33[1-9]\d{8}")
 _CONTROL_CHARS = re.compile(r"[\x00-\x1f\x7f]")
 
+INVALID_FORM = "Le formulaire est invalide."
+
 _MESSAGES = {
     "name": "Merci d'indiquer votre nom (2 à 80 caractères).",
     "phone": "Le numéro de téléphone n'est pas valide.",
@@ -58,16 +60,16 @@ class BookingIn(BookingFields):
 def validation_message(exc: ValidationError) -> str:
     errors = exc.errors()
     if not errors:
-        return "Le formulaire est invalide."
+        return INVALID_FORM
 
-    # Collect all fields with errors
+    # Rassemble les champs en erreur, pour ne garder que le premier à afficher.
     error_fields = {str(error["loc"][0]) for error in errors if error["loc"]}
 
-    # Priority order (pre-inheritance field order): date, name, phone, turnstile_token
+    # Ordre d'affichage (ordre des champs avant héritage) : date, name, phone, turnstile_token.
     priority = ["date", "name", "phone", "turnstile_token"]
     for field in priority:
         if field in error_fields:
-            return _MESSAGES.get(field, "Le formulaire est invalide.")
+            return _MESSAGES.get(field, INVALID_FORM)
 
-    # Fallback if none of the priority fields are in error
-    return "Le formulaire est invalide."
+    # Repli si aucun des champs prioritaires n'est en erreur.
+    return INVALID_FORM

@@ -121,12 +121,12 @@ async def test_admin_page_serves_the_spa(build_app, tmp_path):
 
 
 async def test_neighboring_paths_dont_get_admin_headers(client):
-    # /api/administrateurs (similar path) should NOT get admin headers
+    # /api/administrateurs (chemin voisin) ne doit PAS recevoir les en-têtes admin
     response = await client.get("/api/administrateurs")
     assert response.status_code == 404
     assert "Cache-Control" not in response.headers
     assert "X-Robots-Tag" not in response.headers
-    # /api/admin/bookings (actual admin path) SHOULD get admin headers
+    # /api/admin/bookings (chemin admin réel) DOIT recevoir les en-têtes admin
     response = await client.get("/api/admin/bookings")
     assert response.status_code == 401
     assert response.headers["Cache-Control"] == "no-store"
