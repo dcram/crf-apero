@@ -530,3 +530,85 @@ dialog.sheet::backdrop {
   gap: 0.4rem;
   padding: 0.75rem 0;
 }
+
+/* Fenêtre « Votre mission » */
+.mission section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.mission h3 {
+  margin: 0;
+  color: var(--gold-text);
+  font: 600 0.8rem/1.2 var(--sans);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.mission p {
+  margin: 0;
+  color: var(--ink-soft);
+}
+
+.mission .schedule {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.mission .schedule th {
+  width: 4.5rem;
+  padding: 0.3rem 0.75rem 0.3rem 0;
+  border-bottom: 1px solid var(--rule);
+  color: var(--ink);
+  font: 600 1rem/1.3 var(--sans);
+  text-align: left;
+  vertical-align: baseline;
+  white-space: nowrap;
+}
+
+.mission .schedule td {
+  padding: 0.3rem 0;
+  border-bottom: 1px solid var(--rule);
+  color: var(--ink-soft);
+  vertical-align: baseline;
+}
+
+.mission .ask {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.mission {
+  position: relative;
+}
+
+.sheet-close {
+  position: absolute;
+  top: 0.9rem;
+  right: 0.9rem;
+  padding: 0.1rem 0.5rem 0.25rem;
+  border: none;
+  border-radius: 999px;
+  background: none;
+  color: var(--ink-soft);
+  font: 400 1.6rem/1 var(--sans);
+  cursor: pointer;
+}
+
+.sheet-close:hover {
+  background: var(--rule);
+  color: var(--ink);
+}
+
+/* La fenêtre de mission porte plus de texte que celle de réservation. */
+@media (min-width: 40rem) {
+  dialog.sheet.wide {
+    width: min(46rem, calc(100% - 2rem));
+  }
+
+  .mission .sheet-body,
+  .sheet-body.mission {
+    padding: 2.25rem 2.5rem;
+  }
+}

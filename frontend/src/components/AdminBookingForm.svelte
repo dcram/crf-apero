@@ -52,7 +52,7 @@
 </script>
 
 <form class="admin-form" onsubmit={submit}>
-  <h3>{formatTuesday(date)} — {theme}</h3>
+  <h3>{formatTuesday(date)} · {theme}</h3>
   <label for="form-name">Nom</label>
   <input id="form-name" bind:value={name} required disabled={busy} />
   <label for="form-phone">Téléphone (facultatif)</label>
